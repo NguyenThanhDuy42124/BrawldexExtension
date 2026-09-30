@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="vi" class="s2 theme-pokemon">
+<head>
+  <meta charset="UTF-8">
+  <title>Brawldex Live Companion</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="brawl-app">
+    <!-- Top Trainer Calling Card (Style #w2Card) -->
+    <header class="brawl-header">
+      <div class="brawl-calling-card" id="userCallingCard">
+        <div class="cc-sprites">
+          <img id="trainerSprite" class="cc-trainer" src="BUGCATCHER.png" alt="Trainer" onerror="this.src='https://www.brawldex.live/trainers/BUGCATCHER.png'">
+          <img id="partnerSprite" class="cc-partner" src="https://www.brawldex.live/front/390.png" alt="Partner">
+        </div>
+        <div class="cc-info">
+          <div class="cc-name-row">
+            <span id="ccTrainerName" class="cc-name">Trainer</span>
+            <span class="cc-lv">LV <b id="ccLevel">1</b></span>
+          </div>
+          <div class="cc-sub-row">
+            <span id="ccTiktok" class="cc-tiktok"></span>
+            <span class="cc-sep">·</span>
+            <span class="cc-wallet"><i data-lucide="coins"></i> <b id="headerCoins">0</b> Coins</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-tools">
+        <button id="btnWebSync" class="tool-btn" title="Tự động mở/quét brawldex.live để lấy Owner ID mới" data-i18n-title="tool_web_sync_title">
+          <i data-lucide="cloud-download"></i>
+        </button>
+        <button id="btnRefresh" class="tool-btn" title="Làm mới dữ liệu" data-i18n-title="tool_refresh_title">
+          <i data-lucide="refresh-cw"></i>
+        </button>
+        <button id="btnSettings" class="tool-btn" title="Cài đặt" data-i18n-title="tool_settings_title">
+          <i data-lucide="settings"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-pokemon">
+        <i data-lucide="swords"></i> <span data-i18n="tab_pokemon">Đội Hình</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-bag">
+        <i data-lucide="backpack"></i> <span data-i18n="tab_bag">Balo</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-shop">
+        <i data-lucide="store"></i> <span data-i18n="tab_shop">Cửa Hàng</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-stats">
+        <i data-lucide="user"></i> <span data-i18n="tab_stats">Chỉ Số</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-market">
+        <i data-lucide="shield-alert"></i> <span data-i18n="tab_market">Chợ Đen</span>
+      </button>
+    </nav>
+
+    <!-- Settings Drawer -->
+    <div id="settingsPanel" class="settings-drawer hidden">
+      <div class="settings-header">
+        <span><i data-lucide="shield" class="mini-icon"></i> <span data-i18n="settings_title">Cấu hình tài khoản</span></span>
+        <button id="btnCloseSettings" class="btn-text">✕</button>
+      </div>
+      <div class="settings-body">
+        <label for="inputOwnerId" data-i18n="owner_id_lbl">Owner ID:</label>
+        <div class="input-inline">
+          <input type="text" id="inputOwnerId" spellcheck="false" placeholder="YOUR_OWNER_ID">
+          <button id="btnSaveOwner" class="btn-gold" data-i18n="btn_save">Lưu</button>
+        </div>
+        <button id="btnAutoFetchId" class="btn-sync-tab primary">
+          <i data-lucide="cloud-download"></i> <span data-i18n="btn_auto_fetch">Chạy tới brawldex.live lấy ID mới</span>
+        </button>
+        <button id="btnAutoDetect" class="btn-sync-tab">
+          <i data-lucide="zap"></i> <span data-i18n="btn_auto_detect">Quét từ tab brawldex đang mở</span>
+        </button>
+
+        <div class="setting-toggle-row">
+          <div class="toggle-text">
+            <span class="toggle-lbl" data-i18n="bubble_lbl">Bong bóng nổi (Floating Bubble)</span>
+            <span class="toggle-sub" data-i18n="bubble_sub">Hiện nút tròn hỗ trợ trên brawldex.live & TikTok</span>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="toggleBubble" checked>
+            <span class="slider-round"></span>
+          </label>
+        </div>
+
+        <div class="setting-toggle-row">
+          <div class="toggle-text">
+            <span class="toggle-lbl" data-i18n="lang_lbl">Ngôn ngữ (Language)</span>
+            <span class="toggle-sub" data-i18n="lang_sub">Chuyển đổi giao diện Tiếng Việt / English</span>
+          </div>
+          <select id="selectLanguage" class="setting-select">
+            <option value="vi">🇻🇳 Tiếng Việt</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: POKÉMON DECK (PERMANONS & REGULARS) -->
+    <!-- ========================================== -->
+    <div id="tab-pokemon" class="tab-content active">
+      <!-- Search & Ball Filters -->
+      <div class="filter-deck">
+        <div class="search-wrap">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="searchInput" placeholder="Tìm tên, Dex # hoặc Code..." data-i18n-placeholder="search_placeholder">
+          <button id="btnClearSearch" class="btn-clear hidden">✕</button>
+        </div>
+
+        <div class="pills-scroll">
+          <button class="filter-pill active" data-filter="all"><i data-lucide="layers"></i> <span data-i18n="filter_all">Tất cả</span></button>
+          <button class="filter-pill" data-ball="poke"><i data-lucide="circle-dot"></i> Pokéball</button>
+          <button class="filter-pill" data-ball="great"><i data-lucide="circle-dot"></i> Great Ball</button>
+          <button class="filter-pill" data-ball="ultra"><i data-lucide="circle-dot"></i> Ultra Ball</button>
+          <button class="filter-pill" data-filter="full_energy"><i data-lucide="zap"></i> <span data-i18n="filter_energy">Đầy Energy</span></button>
+          <button class="filter-pill" data-filter="has_wins"><i data-lucide="swords"></i> <span data-i18n="filter_wins">Đã Thắng</span></button>
+        </div>
+      </div>
+
+      <!-- Pokemon Stream -->
+      <main id="pokemonStream" class="pokemon-stream">
+        <!-- Section 0: Favourites -->
+        <div class="mon-section" id="favSection" style="display: none;">
+          <div class="section-badge-header fav">
+            <span class="sec-title"><i data-lucide="star"></i> <span data-i18n="sec_favourites">FAVOURITES</span></span>
+            <span id="favCount" class="sec-count">0</span>
+          </div>
+          <div id="favList" class="mon-cards-group"></div>
+        </div>
+
+        <!-- Section 1: Permanons -->
+        <div class="mon-section">
+          <div class="section-badge-header perma">
+            <span class="sec-title"><i data-lucide="lock"></i> <span data-i18n="sec_permanons">PERMANONS</span></span>
+            <span id="permaCount" class="sec-count">3 · <span data-i18n="sec_perma_desc">CAN'T BE STOLEN OR RELEASED</span></span>
+          </div>
+          <div id="permaList" class="mon-cards-group"></div>
+        </div>
+
+        <!-- Section 2: Everything Else -->
+        <div class="mon-section">
+          <div class="section-badge-header regular">
+            <span class="sec-title"><i data-lucide="boxes"></i> <span data-i18n="sec_everything_else">EVERYTHING ELSE</span></span>
+            <span id="regularCount" class="sec-count">4</span>
+          </div>
+          <div id="regularList" class="mon-cards-group"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: BALO (BAG & CONSUMABLES)           -->
+    <!-- ========================================== -->
+    <div id="tab-bag" class="tab-content">
+      <div class="bag-wrapper">
+        <!-- Header Consumables -->
+        <div class="bag-header">
+          <div>
+            <h3 class="bag-title"><i data-lucide="sparkles"></i> <span data-i18n="bag_consumables_title">Consumables</span></h3>
+            <p class="bag-subtitle" data-i18n="bag_consumables_sub">candy · TMs · shiny · capsules</p>
+          </div>
+        </div>
+
+        <div class="consumables-grid">
+          <!-- Rare Candy -->
+          <div class="consumable-card">
+            <div class="c-card-left">
+              <img src="https://www.brawldex.live/items/RARECANDY.png" class="c-item-img" alt="Rare Candy" onerror="this.src='https://www.brawldex.live/items/COIN.png'">
+              <div class="c-card-info">
+                <span class="c-card-name">Rare Candy</span>
+                <span class="c-card-desc" data-i18n="bag_rare_candy_desc">Evolves a non-Permamon Pokémon. Permamon evolve by knocking Pokémon out instead.</span>
+              </div>
+            </div>
+            <div class="c-card-right">
+              <span class="c-card-qty" id="bagRareCandyCount">×7</span>
+            </div>
+          </div>
+
+          <!-- TM Disc -->
+          <div class="consumable-card">
+            <div class="c-card-left">
+              <img src="https://www.brawldex.live/items/TMDISC.png" class="c-item-img" alt="TM Disc" onerror="this.src='icons/icon16.png'">
+              <div class="c-card-info">
+                <span class="c-card-name">TM Disc</span>
+                <span class="c-card-desc" data-i18n="bag_tm_disc_desc">Not held — used. Spend one on a Permamon to reroll one of its four moves at random.</span>
+              </div>
+            </div>
+            <div class="c-card-right">
+              <span class="c-card-qty" id="bagTmDiscCount">×0</span>
+            </div>
+          </div>
+
+          <!-- Shiny Potion -->
+          <div class="consumable-card">
+            <div class="c-card-left">
+              <img src="https://www.brawldex.live/items/SHINYPOTION.png" class="c-item-img" alt="Shiny Potion" onerror="this.src='https://www.brawldex.live/items/COIN.png'">
+              <div class="c-card-info">
+                <span class="c-card-name">Shiny Potion</span>
+                <span class="c-card-desc" data-i18n="bag_shiny_potion_desc">Makes one of your Permamon shiny forever: shiny art and the shiny stat boost in battle.</span>
+              </div>
+            </div>
+            <div class="c-card-right">
+              <button class="btn-consumable-act" id="btnUseShinyPotion" disabled data-i18n="btn_use">Dùng</button>
+              <span class="c-card-qty" id="bagShinyPotionCount">×0</span>
+            </div>
+          </div>
+
+          <!-- Shiny Dust -->
+          <div class="consumable-card">
+            <div class="c-card-left">
+              <img src="https://www.brawldex.live/items/SHINYDUST.png" class="c-item-img" alt="Shiny Dust" onerror="this.src='https://www.brawldex.live/items/COIN.png'">
+              <div class="c-card-info">
+                <span class="c-card-name">Shiny Dust</span>
+                <span class="c-card-desc" id="bagShinyDustDesc"><span data-i18n="bag_shiny_dust_desc">Trade 3 Shiny Dust for a Shiny Potion.</span> <span data-i18n="bag_you_have">You have</span> <span id="bagShinyDustRatio">0 of 3</span>.</span>
+              </div>
+            </div>
+            <div class="c-card-right">
+              <button class="btn-consumable-act" id="btnTradeShinyDust" disabled data-i18n="btn_trade_3">Đổi 3</button>
+              <span class="c-card-qty" id="bagShinyDustCount">×0</span>
+            </div>
+          </div>
+
+          <!-- Item Capsule -->
+          <div class="consumable-card">
+            <div class="c-card-left">
+              <img src="https://www.brawldex.live/season2/items/ITEMCAPSULE.png" class="c-item-img" alt="Item Capsule" onerror="this.src='https://www.brawldex.live/items/COIN.png'">
+              <div class="c-card-info">
+                <span class="c-card-name">Item Capsule</span>
+                <span class="c-card-desc" data-i18n="bag_capsule_desc">Opens into one random held item you don't have yet.</span>
+              </div>
+            </div>
+            <div class="c-card-right">
+              <button class="btn-consumable-act primary" id="btnOpenCapsule" disabled data-i18n="btn_open">Mở</button>
+              <span class="c-card-qty" id="bagItemCapsuleCount">×0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Held Items in Bag -->
+        <div class="bag-header" style="margin-top: 18px;">
+          <div>
+            <h3 class="bag-title"><i data-lucide="shield"></i> <span data-i18n="bag_held_title">Held Items & Plates</span></h3>
+            <p class="bag-subtitle"><span data-i18n="bag_held_sub">Vật phẩm & đĩa hệ trang bị đang có trong túi</span> (<span id="bagHeldItemsCount">0</span>)</p>
+          </div>
+        </div>
+        <div id="bagHeldItemsGrid" class="bag-held-grid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: SHOP (#shop) - TODAY STOCK & BUY    -->
+    <!-- ========================================== -->
+    <div id="tab-shop" class="tab-content">
+      <div class="shop-container">
+        <!-- Wallet Bar -->
+        <div class="wallet-bar">
+          <div class="wallet-title">
+            <i data-lucide="wallet"></i>
+            <span data-i18n="shop_wallet_title">Số Dư Ví (Wallet)</span>
+          </div>
+          <div class="wallet-badges">
+            <span class="w-badge gold"><i data-lucide="coins"></i> <b id="shopWalletCoins">219</b> Coins</span>
+            <span class="w-badge candy"><i data-lucide="package"></i> <b id="shopWalletCandies">6</b> Candies</span>
+            <span class="w-badge nugget"><i data-lucide="gem"></i> <b id="shopWalletNuggets">0</b> Diamonds</span>
+          </div>
+        </div>
+
+        <!-- Today's Stock Section with Buy Buttons -->
+        <div class="shop-sub-section">
+          <div class="sh2-h">
+            <div>
+              <p class="sh2-eye" data-i18n="shop_same_six">Same six for everyone</p>
+              <h3 class="sh2-t" data-i18n="shop_today_stock">Hàng Ngày (Today's Stock)</h3>
+            </div>
+            <span class="sh2-pill" id="shopResetBadge">Resets in ...</span>
+          </div>
+          <div id="todayStockList" class="today-stock-grid">
+            <div class="stream-loading">
+              <div class="brawl-spinner"></div>
+              <span id="stockLoadingNotice" data-i18n="shop_checking_stock">Đang kiểm tra hàng khả dụng...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALWAYS IN STOCK (ITEMS) -->
+        <div class="shop-sub-section">
+          <div class="shop-sec-head">
+            <div>
+              <p style="font-size: 10px; color: var(--s2-faint); text-transform: uppercase; font-weight: 700; margin: 0; letter-spacing: 0.5px;" data-i18n="shop_always_stock">Luôn Có Sẵn (Always in Stock)</p>
+              <h3 class="shop-sec-title"><i data-lucide="package"></i> <span data-i18n="shop_items">Items</span></h3>
+            </div>
+          </div>
+          <div class="static-items-list">
+            <!-- 1. Random Ball -->
+            <div class="static-item-row">
+              <div class="si-left">
+                <img class="si-img" src="https://www.brawldex.live/emblems/POKEBALL.png" alt="Random Ball">
+                <div class="si-info">
+                  <span class="si-name">Random Ball</span>
+                  <span class="si-sub" data-i18n="shop_random_ball_sub">A random Pokémon — 72% Poké, 20% Great, 7% Ultra, 1% Master.</span>
+                </div>
+              </div>
+              <div class="si-action">
+                <button class="btn-buy-static" data-item="random_ball" data-price="30">
+                  <i data-lucide="coins"></i> 30
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. TM Disc -->
+            <div class="static-item-row">
+              <div class="si-left">
+                <img class="si-img" src="https://www.brawldex.live/items/TMDISC.png" alt="TM Disc" onerror="this.src='icons/icon16.png'">
+                <div class="si-info">
+                  <span class="si-name">TM Disc</span>
+                  <span class="si-sub" data-i18n="shop_tm_disc_sub">Reroll one of a Pokémon's moves.</span>
+                </div>
+              </div>
+              <div class="si-action">
+                <button class="btn-buy-static" data-item="tm_disc" data-price="30">
+                  <i data-lucide="coins"></i> 30
+                </button>
+              </div>
+            </div>
+
+            <!-- 3. TM Disc · diamonds -->
+            <div class="static-item-row">
+              <div class="si-left">
+                <img class="si-img" src="https://www.brawldex.live/items/TMDISC.png" alt="TM Disc · diamonds" onerror="this.src='icons/icon16.png'">
+                <div class="si-info">
+                  <span class="si-name">TM Disc · diamonds</span>
+                  <span class="si-sub" data-i18n="shop_tm_diamonds_sub">The same TM Disc, paid in diamonds.</span>
+                </div>
+              </div>
+              <div class="si-action">
+                <button class="btn-buy-static diamond" data-item="tm_diamonds" data-price="15">
+                  <i data-lucide="gem"></i> 15
+                </button>
+              </div>
+            </div>
+
+            <!-- 4. Rare Candy -->
+            <div class="static-item-row">
+              <div class="si-left">
+                <img class="si-img" src="https://www.brawldex.live/items/RARECANDY.png" alt="Rare Candy" onerror="this.src='https://www.brawldex.live/items/COIN.png'">
+                <div class="si-info">
+                  <span class="si-name">Rare Candy</span>
+                  <span class="si-sub" id="shopCandyDesc"><span data-i18n="shop_candy_sub">Evolves any non-Permamon Pokémon.</span> <span data-i18n="bag_you_have">You have</span> <b id="shopCandyCount">7</b>.</span>
+                </div>
+              </div>
+              <div class="si-action">
+                <button class="btn-buy-static" data-item="rare_candy" data-price="200">
+                  <i data-lucide="coins"></i> 200
+                </button>
+              </div>
+            </div>
+
+            <!-- 5. Ability Patch -->
+            <div class="static-item-row">
+              <div class="si-left">
+                <img class="si-img" src="https://www.brawldex.live/items/ABILITYPATCH.png" alt="Ability Patch" onerror="this.src='icons/icon16.png'">
+                <div class="si-info">
+                  <span class="si-name">Ability Patch</span>
+                  <span class="si-sub" id="shopPatchDesc"><span data-i18n="shop_patch_sub">Choose the Ability a Pokémon fights with, hidden ones too.</span> <span data-i18n="bag_you_have">You have</span> <b id="shopPatchCount">0</b>.</span>
+                </div>
+              </div>
+              <div class="si-action">
+                <button class="btn-buy-static" data-item="ability_patch" data-price="750">
+                  <i data-lucide="coins"></i> 750
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: TRAINER STATS & PLATES              -->
+    <!-- ========================================== -->
+    <div id="tab-stats" class="tab-content">
+      <div class="trainer-summary-card">
+        <div class="ts-top">
+          <div class="ts-sprites">
+            <img class="ts-trainer" src="BUGCATCHER.png" alt="Trainer" onerror="this.src='https://www.brawldex.live/trainers/BUGCATCHER.png'">
+            <img class="ts-partner" src="https://www.brawldex.live/front/390.png" alt="Partner">
+          </div>
+          <div class="ts-titles">
+            <h2 id="tabTrainerName" class="ts-name">Trainer</h2>
+            <div class="ts-tags">
+              <span class="ts-badge level">Lv. <b id="statLevel">1</b></span>
+              <span class="ts-badge rating">Rating: <b id="statRating">1000</b></span>
+              <span id="tiktokTag" class="ts-badge tiktok">TikTok: -</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-section">
+          <h3 class="section-title"><i data-lucide="target"></i> <span data-i18n="stats_battle_title">Thống Kê Chiến Đấu</span></h3>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="sb-val" id="statKos">0</span>
+              <span class="sb-lbl" data-i18n="stats_total_kos">Tổng Hạ Gục (KOs)</span>
+            </div>
+            <div class="stat-box">
+              <span class="sb-val" id="statWins">0</span>
+              <span class="sb-lbl" data-i18n="stats_wins">Trận Thắng</span>
+            </div>
+            <div class="stat-box">
+              <span class="sb-val" id="statLosses">0</span>
+              <span class="sb-lbl" data-i18n="stats_losses">Trận Thua</span>
+            </div>
+            <div class="stat-box">
+              <span class="sb-val" id="statWinRate">0%</span>
+              <span class="sb-lbl" data-i18n="stats_win_rate">Tỷ Lệ Thắng</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="items-section">
+          <h3 class="section-title"><i data-lucide="shield"></i> <span data-i18n="stats_plates_title">Plates & Vật Phẩm Đang Giữ</span></h3>
+          <div id="platesList" class="plates-list">
+            <span class="empty-state">None</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: BLACK MARKET                        -->
+    <!-- ========================================== -->
+    <div id="tab-market" class="tab-content">
+      <div class="market-card">
+        <div class="market-header">
+          <div class="market-title">
+            <span class="live-dot" id="marketDot"></span>
+            <h3 data-i18n="market_title">Chợ Đen (Black Market)</h3>
+          </div>
+          <span class="market-status-badge" id="marketStatus" data-i18n="market_status_closed">Đang đóng</span>
+        </div>
+        <p class="market-desc" data-i18n="market_desc">Vật phẩm thị trường đen đặc biệt:</p>
+        <div id="marketStockList" class="market-stock-list"></div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- POKÉMON INSPECTOR & EDIT MODAL             -->
+    <!-- ========================================== -->
+    <div id="monInspectorModal" class="inspector-modal hidden">
+      <div class="inspector-backdrop" id="btnInspectCloseBackdrop"></div>
+      <div class="inspector-card">
+        <div class="inspector-header">
+          <div class="insp-title-box">
+            <span id="inspDexTag" class="insp-dex">#390</span>
+            <h2 id="inspMonName" class="insp-name">Chimchar</h2>
+            <span id="inspGender" class="insp-gender f">♀</span>
+            <span id="inspBallBadge" class="ball-badge poke">POKÉ</span>
+          </div>
+          <button id="btnInspectClose" class="insp-btn-close" title="Đóng" data-i18n-title="close">✕</button>
+        </div>
+
+        <div class="inspector-body">
+          <!-- Top Overview -->
+          <div class="insp-overview-row">
+            <div class="insp-sprite-box">
+              <img id="inspSprite" src="" alt="Sprite">
+              <span id="inspShinyStar" class="shiny-star hidden">✨</span>
+            </div>
+            <div class="insp-core-badges">
+              <div class="insp-tags" id="inspTypes">
+                <!-- Type pills -->
+              </div>
+              <div class="insp-origin-pill" id="inspOrigin">
+                ♥ First Partner
+              </div>
+              <div class="insp-code-row">
+                <span class="insp-code-label">Code:</span>
+                <button id="inspBtnCopyCode" class="insp-code-btn" title="Click để copy code" data-i18n-title="insp_copy_code_title">
+                  <span id="inspCodeText">CODE</span>
+                  <i data-lucide="copy"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Combat Records 4-Box Grid -->
+          <div class="insp-stats-grid">
+            <div class="insp-grid-box">
+              <span class="box-num" id="inspStatKos">8</span>
+              <span class="box-lbl">KOs</span>
+            </div>
+            <div class="insp-grid-box">
+              <span class="box-num" id="inspStatWins">2</span>
+              <span class="box-lbl">Wins</span>
+            </div>
+            <div class="insp-grid-box">
+              <span class="box-num" id="inspStatBattles">15</span>
+              <span class="box-lbl">Battles</span>
+            </div>
+            <div class="insp-grid-box highlight">
+              <span class="box-num" id="inspStatWinRate">13%</span>
+              <span class="box-lbl">Win rate</span>
+            </div>
+          </div>
+
+          <!-- Ability Section -->
+          <div class="insp-section">
+            <div class="insp-section-title">
+              <span>⚡ Ability</span>
+            </div>
+            <div class="insp-ability-box">
+              <b id="inspAbilityName">Rolls each battle</b>
+              <p id="inspAbilityDesc">Random Ability each battle</p>
+            </div>
+          </div>
+
+          <!-- Held Items Section -->
+          <div class="insp-section">
+            <div class="insp-section-title">
+              <span>🎒 <span data-i18n="insp_held_items_title">Trang Bị Đang Giữ (Held Items)</span></span>
+              <span id="inspItemSlotsCount" class="stats-total-badge">1 Slot Mở</span>
+            </div>
+            <div class="insp-items-box" id="inspHeldItems">
+              <span class="item-tag empty">Trống (Empty)</span>
+            </div>
+
+            <!-- Player Bag Items to Equip -->
+            <div class="insp-bag-subhead">
+              <span class="subhead-title" data-i18n="insp_bag_title">📦 Túi Đồ Trang Bị (Bấm để gán vào Pokémon)</span>
+              <span id="inspBagCount" class="insp-bag-count">0 vật phẩm</span>
+            </div>
+            <div class="insp-bag-list" id="inspBagList">
+              <!-- Bag items rendered here -->
+            </div>
+          </div>
+
+          <!-- Moveset & TM Reroll Section -->
+          <div class="insp-section">
+            <div class="insp-section-title">
+              <span>⚔️ <span data-i18n="insp_moveset_title">Moveset (Chiêu thức & TM Disc Reroll)</span></span>
+            </div>
+            <div class="insp-moves-list" id="inspMovesList">
+              <!-- 4 Move Slots with Reroll buttons -->
+            </div>
+          </div>
+
+          <!-- Base Stats Breakdown -->
+          <div class="insp-section">
+            <div class="insp-section-title">
+              <span>📊 Base Stats</span>
+              <span class="stats-total-badge"><b id="inspStatsTotal">309</b> total</span>
+            </div>
+            <div class="insp-bars-list" id="inspStatBars">
+              <!-- HP, ATK, DEF, SPE, SPA, SPD -->
+            </div>
+          </div>
+
+          <!-- Evolution Tracker Section -->
+          <div class="insp-section">
+            <div class="insp-section-title">
+              <span>⭐ Evolution</span>
+              <span id="inspEvoReq" class="evo-req-badge">8 / 30 KOs</span>
+            </div>
+            <div class="insp-evo-track">
+              <div id="inspEvoBar" class="insp-evo-fill" style="width: 27%;"></div>
+            </div>
+            <div id="inspEvoActionRow" class="insp-evo-actions"></div>
+          </div>
+
+          <!-- Daily / Trainers Footer -->
+          <div class="insp-footer-meta">
+            <span>📅 Daily: <b>3 / 3 done</b></span>
+            <span>👤 Trainers: <b>1 trainer</b></span>
+            <span id="inspStaysBadge" class="stays-pill">Stays</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Floating Toast -->
+    <div id="toast" class="brawl-toast hidden">
+      <i data-lucide="check" class="toast-icon"></i>
+      <span id="toastMessage">Đã copy vào bộ nhớ đệm!</span>
+    </div>
+  </div>
+
+  <script src="lucide.min.js"></script>
+  <script src="pokedex.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

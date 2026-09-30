@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "Brawldex Helper & Quick Copy",
+  "version": "1.0.0",
+  "description": "Bắt API Brawldex, hiển thị danh sách Pokémon và 1-click copy Code, lệnh bot (!join), link sprite.",
+  "permissions": [
+    "storage",
+    "clipboardWrite",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://vtyruyozcxwkxrchzbth.supabase.co/*",
+    "https://www.brawldex.live/*",
+    "https://*.tiktok.com/*",
+    "https://tiktok.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Brawldex Helper"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.brawldex.live/*",
+        "https://*.tiktok.com/*",
+        "https://tiktok.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "popup.html",
+        "popup.css",
+        "popup.js",
+        "dexdata.json",
+        "pokedex.js",
+        "helditems.json",
+        "lucide.min.js",
+        "icons/*",
+        "BUGCATCHER.png"
+      ],
+      "matches": [
+        "https://www.brawldex.live/*",
+        "https://*.tiktok.com/*",
+        "https://tiktok.com/*"
+      ]
+    }
+  ]
+}

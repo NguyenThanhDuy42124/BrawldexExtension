@@ -1,0 +1,33 @@
+# Sensitive and account-specific dumps
+full_account_data.json
+user_jwt.txt
+captured_apis.json
+*.log
+
+# Scraped app bundles and research artifacts
+brawldex_app.js
+brawldex_app_decoded.js
+brawldex_index_decoded.html
+apis_summary.html
+BRAWLDEX_APIS.md
+MOBILE_BUILD_GUIDE.md
+mobile.html
+index.html
+labreal.js
+s2ui.js
+manifest.webmanifest
+pokedex.json
+fetch_pokemon.py
+
+# Compressed archives
+*.zip
+*.rar
+*.tar.gz
+*.7z
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+__pycache__/
